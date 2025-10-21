@@ -17,7 +17,7 @@ jobs:
       - name: ☁️ Configure AWS credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: arn:aws:iam::442042516591:role/gitaction
+          role-to-assume: arn:aws:iam::442042516591:role/gitactions
           aws-region: us-east-1
 
       - name: 🧰 Setup Terraform
