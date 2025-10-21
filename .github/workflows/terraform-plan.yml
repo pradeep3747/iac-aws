@@ -1,0 +1,32 @@
+name: Terraform Plan
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  terraform-plan:
+    name: Terraform Init & Plan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ⬇️ Checkout code
+        uses: actions/checkout@v3
+
+      - name: ☁️ Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::442042516591:role/GitHubActionsTerraformRole
+          aws-region: us-east-1
+
+      - name: 🧰 Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.6.6
+
+      - name: 📦 Terraform Init
+        run: terraform init
+
+      - name: 🔍 Terraform Plan
+        run: terraform plan
