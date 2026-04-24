@@ -4,7 +4,7 @@ resource "aws_vpc" "main" {
 
 resource "aws_subnet" "public" {
   vpc_id                  = aws_vpc.main.id
-  cidr_block              = "10.0.1.0/24"
+  cidr_block              = "10.0.1.0/27"
   map_public_ip_on_launch = true
 }
 
@@ -67,9 +67,4 @@ resource "aws_instance" "web" {
   tags = {
     Name = "CodeDeployEC2"
   }
-}
-
-resource "aws_iam_instance_profile" "ec2_profile" {
-  name = "EC2-codedeploy-profile"
-  role = aws_iam_role.ec2_codedeploy.name
 }
