@@ -68,8 +68,3 @@ resource "aws_instance" "web" {
     Name = "CodeDeployEC2"
   }
 }
-
-resource "aws_iam_instance_profile" "ec2_profile" {
-  name = "EC2-codedeploy-profile"
-  role = aws_iam_role.ec2_codedeploy.name
-}
