@@ -9,6 +9,9 @@ jobs:
   terraform-apply:
     name: Terraform Apply
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write   # REQUIRED for OIDC
+      contents: read    # Needed for checkout
 
     steps:
       - name: ⬇️ Checkout code
