@@ -81,10 +81,9 @@ resource "aws_sns_topic_subscription" "email_subscription" {
 # 2. Package Lambda Code into a Zip File
 data "archive_file" "lambda_zip" {
   type        = "zip"
-  source_file = "${path.module}/lambda_function.py"
+  source_file = "${path.module}/Resources/lambda_function.py"
   output_path = "${path.module}/lambda_function.zip"
 }
-
 # 3. IAM Role for Lambda
 resource "aws_iam_role" "lambda_exec_role" {
   name = "resource_counter_lambda_role"
