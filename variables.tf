@@ -10,3 +10,13 @@ variable "instance_type" {
   default     = "t2.micro"
   
 }
+variable "notification_email" {
+  type        = string
+  description = "The email address to receive resource count reports"
+  default     = "pradeep.reddy91011@gmail.com" # Replace with your email
+}
+
+variable "aws_region" {
+  type    = string
+  default = "us-east-1"
+}

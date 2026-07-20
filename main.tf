@@ -68,3 +68,89 @@ resource "aws_instance" "web" {
     Name = "CodeDeployEC2"
   }
 }
+resource "aws_sns_topic" "resource_report_topic" {
+  name = "aws-resource-report-topic"
+}
+
+resource "aws_sns_topic_subscription" "email_subscription" {
+  topic_arn = aws_sns_topic.resource_report_topic.arn
+  protocol  = "email"
+  endpoint  = var.notification_email
+}
+
+# 2. Package Lambda Code into a Zip File
+data "archive_file" "lambda_zip" {
+  type        = "zip"
+  source_file = "${path.module}/Resources/lambda_function.py"
+  output_path = "${path.module}/lambda_function.zip"
+}
+# 3. IAM Role for Lambda
+resource "aws_iam_role" "lambda_exec_role" {
+  name = "resource_counter_lambda_role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action    = "sts:AssumeRole"
+      Effect    = "Allow"
+      Principal = { Service = "lambda.amazonaws.com" }
+    }]
+  })
+}
+
+# IAM Policy for CloudWatch Logs, Tagging API, and SNS Publish
+resource "aws_iam_policy" "lambda_policy" {
+  name        = "resource_counter_lambda_policy"
+  description = "Permissions to scan resources and publish to SNS"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ]
+        Resource = "arn:aws:logs:*:*:*"
+      },
+      {
+        Effect   = "Allow"
+        Action   = [
+          "tag:GetResources"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect   = "Allow"
+        Action   = [
+          "sns:Publish"
+        ]
+        Resource = aws_sns_topic.resource_report_topic.arn
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "attach_policy" {
+  role       = aws_iam_role.lambda_exec_role.name
+  policy_arn = aws_iam_policy.lambda_policy.arn
+}
+
+# 4. Lambda Function Definition
+resource "aws_lambda_function" "resource_counter_lambda" {
+  filename         = data.archive_file.lambda_zip.output_path
+  function_name    = "AWS-Resource-Counter-Report"
+  role             = aws_iam_role.lambda_exec_role.arn
+  handler          = "lambda_function.lambda_handler"
+  source_code_hash = data.archive_file.lambda_zip.output_base64sha256
+  runtime          = "python3.12"
+  timeout          = 30
+
+  environment {
+    variables = {
+      SNS_TOPIC_ARN = aws_sns_topic.resource_report_topic.arn
+    }
+  }
+}
